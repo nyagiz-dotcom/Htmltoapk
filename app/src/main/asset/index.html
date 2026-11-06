@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+<html lang="tr" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Detaylı Zekât Hesaplama, Canlı Kur Takibi ve Varlık/Borç Yönetim Asistanı">
+    <meta name="theme-color" content="#0f172a">
+    <title>Zekât Hesaplama ve Finans Asistanı</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        * { box-sizing: border-box; }
+        html, body { height: 100%; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+            background-color: #0f172a;
+            color: #f8fafc;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            -webkit-tap-highlight-color: transparent;
+        }
+        input, select {
+            user-select: auto !important;
+            -webkit-user-select: auto !important;
+        }
+        .digital-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .page-container {
+            width: 100%;
+            max-width: 28rem;
+            margin-left: auto;
+            margin-right: auto;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+            padding: 0.5rem;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(51, 65, 85, 0.8);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100">
+
+    <!-- Ana Uygulama Kapsayıcısı -->
+    <div class="page-container">
+        
+        <!-- Header -->
+        <header class="w-full flex justify-between items-center bg-slate-950/80 border border-slate-800 rounded-2xl px-3.5 py-2.5 shadow-lg shrink-0 mb-2">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
+                    <i class="fa-solid fa-coins text-sm"></i>
+                </div>
+                <div>
+                    <h1 class="text-xs font-black tracking-wider text-amber-400 leading-tight uppercase">ZEKÂT ASİSTANI</h1>
+                </div>
+            </div>
+
+            <!-- Üst Butonlar: Sağ Tarafta Kılavuz ve Veri Butonları -->
+            <div class="flex items-center gap-2">
+                <button onclick="openBackupModal()" aria-label="Veri Yönetimi" class="h-8 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-95 border border-slate-700/80 flex items-center justify-center gap-1.5 text-cyan-400 transition-all shadow text-xs font-bold" title="Veri Yönetimi">
+                    <i class="fa-solid fa-database text-xs"></i>
+                    <span class="text-[10px]">Veri</span>
+                </button>
+                <button onclick="openGuideModal()" aria-label="Kullanım Kılavuzu" class="h-8 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-95 border border-slate-700/80 flex items-center justify-center gap-1.5 text-violet-400 transition-all shadow text-xs font-bold" title="Kullanım Kılavuzu">
+                    <i class="fa-solid fa-book-open text-xs"></i>
+                    <span class="text-[10px]">Kılavuz</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- İçerik Alanı (Sayfalar) -->
+        <main class="flex-1 w-full overflow-hidden flex flex-col relative">
+
+            <!-- PAGE 1: ÖZET & HESAPLAMA -->
+            <div id="pageMain" class="w-full h-full flex flex-col justify-between overflow-y-auto custom-scrollbar space-y-2.5 pr-0.5">
+                <div class="space-y-2.5">
+                    
+                    <!-- Bilgi / Uyarı Kutusu -->
+                    <div class="bg-amber-950/30 border border-amber-500/40 rounded-xl p-2.5 text-center shadow-md">
+                        <p class="text-[10px] text-amber-300 font-semibold leading-relaxed flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-circle-info text-amber-400 text-xs"></i>
+                            Hesaplamalar bilgi amaçlıdır; kurlar anlık serbest piyasa alış değerleridir.
+                        </p>
+                    </div>
+
+                    <!-- Takvim Seçimi -->
+                    <div class="bg-slate-950 border border-slate-800 rounded-2xl p-2.5 shadow-md">
+                        <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1.5 px-1">
+                            Hesaplama Yılı / Takvim Oranı
+                        </label>
+                        <div class="grid grid-cols-2 gap-2 p-1 bg-slate-900 rounded-xl border border-slate-800/80">
+                            <button id="btnHicri" onclick="setCalendar('hicri')" class="py-1.5 px-2 rounded-lg text-xs font-black transition-all bg-amber-500 text-slate-950 shadow">
+                                Hicri Yıl (%2.5)
+                            </button>
+                            <button id="btnMiladi" onclick="setCalendar('miladi')" class="py-1.5 px-2 rounded-lg text-xs font-black transition-all text-slate-400 hover:text-slate-200">
+                                Miladi Yıl (%2.577)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Ana Hesap Kartı -->
+                    <div class="bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 rounded-2xl p-4 shadow-xl relative overflow-hidden">
+                        <div class="flex justify-between items-start mb-1">
+                            <div class="flex flex-col">
+                                <span class="text-[10px] font-black uppercase tracking-wider text-cyan-400">Hesaplanan Zekât Borcu</span>
+                                <span class="text-[9px] text-slate-400 font-medium mt-0.5">*Varlık Alış Fiyatı Esastır</span>
+                            </div>
+                            <span id="nisabStatus" class="text-[10px] px-2.5 py-0.5 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-bold">
+                                Kurlar Bekleniyor
+                            </span>
+                        </div>
+
+                        <div class="my-2">
+                            <div class="digital-font text-3xl font-black tracking-tight text-cyan-400" id="displayZakat">
+                                ₺0.00
+                            </div>
+                        </div>
+
+                        <div class="mt-3 pt-2 border-t border-slate-800/80 space-y-1.5 text-xs">
+                            <div class="flex justify-between text-slate-400">
+                                <span>Toplam Varlıklar:</span>
+                                <span id="displayAssets" class="text-slate-200 font-bold digital-font">₺0.00</span>
+                            </div>
+                            <div class="flex justify-between text-slate-400">
+                                <span>Toplam Borçlar:</span>
+                                <span id="displayDebts" class="text-rose-400 font-bold digital-font">-₺0.00</span>
+                            </div>
+                            <div class="flex justify-between text-slate-400 pt-1 border-t border-slate-800/40">
+                                <span>Net Matrah (Zekâta Tabi):</span>
+                                <span id="displayNet" class="text-cyan-300 font-black digital-font">₺0.00</span>
+                            </div>
+                            <div class="flex justify-between text-slate-400 pt-1">
+                                <span>Nisap Miktarı (80.18g Altın):</span>
+                                <span id="displayNisab" class="font-bold text-slate-200 digital-font">₺0.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Canlı Güncelleme Butonu (Renklendirilmiş & Vurgulu) -->
+                    <button id="btnUpdateMain" onclick="updateAndRecalculateAll()" class="w-full py-3 px-4 bg-gradient-to-r from-cyan-600 via-teal-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 active:scale-95 border border-cyan-400/30 rounded-xl font-black text-xs text-white transition-all flex items-center justify-center gap-2 shadow-xl shadow-cyan-950/50">
+                        <i id="btnUpdateIcon" class="fa-solid fa-arrows-rotate text-cyan-200 text-sm"></i>
+                        <span>Kurları Güncelle Ve Zekât Hesapla</span>
+                    </button>
+
+                </div>
+            </div>
+
+            <!-- PAGE 2: VARLIKLAR -->
+            <div id="pageAssets" class="hidden w-full h-full flex flex-col justify-between overflow-hidden">
+                <div class="space-y-2 flex-1 flex flex-col overflow-hidden w-full">
+                    <div class="flex justify-between items-center bg-slate-950 p-2.5 rounded-2xl border border-slate-800 shrink-0 shadow">
+                        <div>
+                            <h2 class="text-xs font-bold text-cyan-400 flex items-center gap-1.5">
+                                <i class="fa-solid fa-wallet"></i> Varlıklarım
+                            </h2>
+                            <p class="text-[9px] text-slate-400">Zekâta tabi nakit, birikim ve ziynetleriniz.</p>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <button onclick="clearAllItems('asset')" title="Tümünü Sıfırla" class="py-1 px-2 bg-slate-900 hover:bg-slate-800 text-rose-400 border border-slate-800 font-bold text-[10px] rounded-xl transition-all">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                            <button onclick="addItem('asset')" class="py-1 px-2.5 bg-cyan-500 hover:bg-cyan-400 active:scale-95 text-slate-950 font-black text-xs rounded-xl transition-all flex items-center gap-1 shadow">
+                                <i class="fa-solid fa-plus text-[10px]"></i> Ekle
+                            </button>
+                        </div>
+                    </div>
+                    <div id="assetList" class="space-y-1.5 flex-1 overflow-y-auto custom-scrollbar pr-1"></div>
+                </div>
+                <div class="pt-2 border-t border-slate-800/80 space-y-2 shrink-0 w-full mt-1">
+                    <div class="flex justify-between items-center px-2 py-1 bg-slate-950 rounded-xl border border-slate-800">
+                        <span class="text-xs text-slate-400 font-bold">Toplam Varlık:</span>
+                        <span id="assetTotalText" class="text-sm font-black text-cyan-400 digital-font">₺0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGE 3: BORÇLAR -->
+            <div id="pageDebts" class="hidden w-full h-full flex flex-col justify-between overflow-hidden">
+                <div class="space-y-2 flex-1 flex flex-col overflow-hidden w-full">
+                    <div class="flex justify-between items-center bg-slate-950 p-2.5 rounded-2xl border border-slate-800 shrink-0 shadow">
+                        <div>
+                            <h2 class="text-xs font-bold text-rose-400 flex items-center gap-1.5">
+                                <i class="fa-solid fa-hand-holding-dollar"></i> Borçlarım
+                            </h2>
+                            <p class="text-[9px] text-slate-400">Varlıklardan düşülecek ödemeleriniz.</p>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <button onclick="clearAllItems('debt')" title="Tümünü Sıfırla" class="py-1 px-2 bg-slate-900 hover:bg-slate-800 text-rose-400 border border-slate-800 font-bold text-[10px] rounded-xl transition-all">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                            <button onclick="addItem('debt')" class="py-1 px-2.5 bg-rose-500 hover:bg-rose-400 active:scale-95 text-slate-950 font-black text-xs rounded-xl transition-all flex items-center gap-1 shadow">
+                                <i class="fa-solid fa-plus text-[10px]"></i> Ekle
+                            </button>
+                        </div>
+                    </div>
+                    <div id="debtList" class="space-y-1.5 flex-1 overflow-y-auto custom-scrollbar pr-1"></div>
+                </div>
+                <div class="pt-2 border-t border-slate-800/80 space-y-2 shrink-0 w-full mt-1">
+                    <div class="flex justify-between items-center px-2 py-1 bg-slate-950 rounded-xl border border-slate-800">
+                        <span class="text-xs text-slate-400 font-bold">Toplam Borç:</span>
+                        <span id="debtTotalText" class="text-sm font-black text-rose-400 digital-font">₺0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGE 4: HESAP MAKİNASI -->
+            <div id="pageCalculator" class="hidden w-full h-full flex flex-col justify-between overflow-hidden">
+                <div class="space-y-2 flex-1 flex flex-col overflow-hidden w-full">
+                    <div class="flex justify-between items-center bg-slate-950 p-2.5 rounded-2xl border border-slate-800 shrink-0 shadow">
+                        <div>
+                            <h2 class="text-xs font-bold text-amber-400 flex items-center gap-1.5">
+                                <i class="fa-solid fa-calculator"></i> Hesap Makinası
+                            </h2>
+                            <p class="text-[9px] text-slate-400">Zekât hesabına dahil edilmeyen bağımsız listeler.</p>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <button onclick="clearAllItems('calculator')" title="Tümünü Sıfırla" class="py-1 px-2 bg-slate-900 hover:bg-slate-800 text-amber-400 border border-slate-800 font-bold text-[10px] rounded-xl transition-all">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                            <button onclick="addItem('calculator')" class="py-1 px-2.5 bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-black text-xs rounded-xl transition-all flex items-center gap-1 shadow">
+                                <i class="fa-solid fa-plus text-[10px]"></i> Ekle
+                            </button>
+                        </div>
+                    </div>
+                    <div id="calculatorList" class="space-y-1.5 flex-1 overflow-y-auto custom-scrollbar pr-1"></div>
+                </div>
+                <div class="pt-2 border-t border-slate-800/80 space-y-2 shrink-0 w-full mt-1">
+                    <div class="flex justify-between items-center px-2 py-1 bg-slate-950 rounded-xl border border-slate-800">
+                        <span class="text-xs text-slate-400 font-bold">Harici Toplam:</span>
+                        <span id="calculatorTotalText" class="text-sm font-black text-amber-400 digital-font">₺0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGE 5: KURLAR -->
+            <div id="pageRates" class="hidden w-full h-full flex flex-col justify-between overflow-hidden">
+                <div class="space-y-2 flex-1 flex flex-col overflow-hidden w-full">
+                    <div class="bg-slate-950 p-2.5 rounded-2xl border border-slate-800 shrink-0 space-y-2 shadow">
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-xs font-bold text-amber-400 flex items-center gap-1.5">
+                                <i class="fa-solid fa-chart-line"></i> Kur & Fiyat Paneli
+                            </h2>
+                            <p id="ratesLastUpdateText" class="text-[9px] text-slate-400 font-mono">Güncellenmedi</p>
+                        </div>
+                        
+                        <!-- Ons Altın & Gümüş Manuel Düzenleme -->
+                        <div class="grid grid-cols-2 gap-2">
+                            <div class="bg-slate-900 p-1.5 rounded-xl border border-amber-500/30 flex flex-col justify-between text-xs">
+                                <span class="font-bold text-amber-400 text-[10px] flex items-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> Ons Altın ($)
+                                </span>
+                                <div class="flex items-center gap-1 mt-1">
+                                    <span class="text-[9px] text-slate-400">Alış:</span>
+                                    <input id="onsBuyInput" type="number" step="any" min="0" placeholder="0.00" onchange="manualUpdateOns('buy', this.value)" class="w-full text-center bg-slate-950 border border-amber-500/50 rounded py-0.5 digital-font font-bold text-amber-400 focus:outline-none text-xs">
+                                </div>
+                                <div class="flex items-center gap-1 mt-1">
+                                    <span class="text-[9px] text-slate-400">Satış:</span>
+                                    <input id="onsSellInput" type="number" step="any" min="0" placeholder="0.00" onchange="manualUpdateOns('sell', this.value)" class="w-full text-center bg-slate-950 border border-amber-500/50 rounded py-0.5 digital-font font-bold text-amber-400 focus:outline-none text-xs">
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-900 p-1.5 rounded-xl border border-slate-700/60 flex flex-col justify-between text-xs">
+                                <span class="font-bold text-cyan-300 text-[10px] flex items-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-cyan-300"></span> Ons Gümüş ($)
+                                </span>
+                                <div class="flex items-center gap-1 mt-1">
+                                    <span class="text-[9px] text-slate-400">Alış:</span>
+                                    <input id="onsSilverBuyInput" type="number" step="any" min="0" placeholder="0.00" onchange="manualUpdateOnsSilver('buy', this.value)" class="w-full text-center bg-slate-950 border border-slate-700 rounded py-0.5 digital-font font-bold text-cyan-300 focus:outline-none text-xs">
+                                </div>
+                                <div class="flex items-center gap-1 mt-1">
+                                    <span class="text-[9px] text-slate-400">Satış:</span>
+                                    <input id="onsSilverSellInput" type="number" step="any" min="0" placeholder="0.00" onchange="manualUpdateOnsSilver('sell', this.value)" class="w-full text-center bg-slate-950 border border-slate-700 rounded py-0.5 digital-font font-bold text-cyan-300 focus:outline-none text-xs">
+                                </div>
+                            </div>
+                        </div>
+
+                        <button onclick="updateAndRecalculateAll()" class="w-full py-1.5 bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-black text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 shadow">
+                            <i class="fa-solid fa-arrows-rotate text-xs"></i>
+                            <span>Canlı Piyasa Verilerini Çek</span>
+                        </button>
+                    </div>
+
+                    <!-- Fiyat Tablosu -->
+                    <div class="bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden shadow-lg flex-1 flex flex-col">
+                        <div class="grid grid-cols-12 bg-slate-900 px-3 py-1.5 text-[10px] font-black text-slate-400 uppercase tracking-wider border-b border-slate-800 shrink-0">
+                            <div class="col-span-4">Varlık Türü</div>
+                            <div class="col-span-4 text-center text-amber-400">Alış (₺)</div>
+                            <div class="col-span-4 text-center text-slate-300">Satış (₺)</div>
+                        </div>
+                        <div id="ratesTable" class="divide-y divide-slate-800/40 flex-1 overflow-y-auto custom-scrollbar text-xs"></div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Alt Navigasyon Menüleri -->
+        <!-- 1. ÖZET SAYFASI ALT MENÜSÜ -->
+        <nav id="navMainContainer" class="w-full grid grid-cols-4 gap-1.5 pt-2 border-t border-slate-800/80 shrink-0">
+            <button onclick="switchTab('assets')" class="py-2.5 px-1 bg-slate-950 hover:bg-cyan-950/40 border border-slate-800 hover:border-cyan-500/50 rounded-xl flex flex-col items-center justify-center gap-1 text-cyan-400 transition-all shadow-md group">
+                <i class="fa-solid fa-wallet text-sm group-hover:scale-110 transition-transform"></i>
+                <span class="text-[11px] font-extrabold tracking-tight">Varlıklar</span>
+            </button>
+            <button onclick="switchTab('debts')" class="py-2.5 px-1 bg-slate-950 hover:bg-rose-950/40 border border-slate-800 hover:border-rose-500/50 rounded-xl flex flex-col items-center justify-center gap-1 text-rose-400 transition-all shadow-md group">
+                <i class="fa-solid fa-hand-holding-dollar text-sm group-hover:scale-110 transition-transform"></i>
+                <span class="text-[11px] font-extrabold tracking-tight">Borçlar</span>
+            </button>
+            <button onclick="switchTab('calculator')" class="py-2.5 px-1 bg-slate-950 hover:bg-amber-950/40 border border-slate-800 hover:border-amber-500/50 rounded-xl flex flex-col items-center justify-center gap-1 text-amber-400 transition-all shadow-md group">
+                <i class="fa-solid fa-calculator text-sm group-hover:scale-110 transition-transform"></i>
+                <span class="text-[11px] font-extrabold tracking-tight">Hesap</span>
+            </button>
+            <button onclick="switchTab('rates')" class="py-2.5 px-1 bg-slate-950 hover:bg-emerald-950/40 border border-slate-800 hover:border-emerald-500/50 rounded-xl flex flex-col items-center justify-center gap-1 text-emerald-400 transition-all shadow-md group">
+                <i class="fa-solid fa-chart-line text-sm group-hover:scale-110 transition-transform"></i>
+                <span class="text-[11px] font-extrabold tracking-tight">Kurlar</span>
+            </button>
+        </nav>
+
+        <!-- 2. VARLIKLAR SAYFASI ALT MENÜSÜ -->
+        <nav id="navAssetsContainer" class="hidden w-full grid grid-cols-4 gap-1.5 pt-2 border-t border-slate-800/80 shrink-0">
+            <button onclick="switchTab('main')" class="py-2.5 px-1 bg-slate-950 hover:bg-violet-950/40 border border-slate-800 hover:border-violet-500/50 rounded-xl flex flex-col items-center justify-center gap-1 text-violet-400 transition-all shadow-md group">
+                <i class="fa-solid fa-chart-pie text-sm group-hover:scale-110 transition-transform"></i>
+                <span class="text-[11px] font-extrabold tracking-tight">Özet</span>
+            </button>
+            <button onclick="switchTab('debts')" class="py-2.5 px-1 bg-slate-950 hover:bg-rose-950/40 border border-slate-800 hover:border-rose-500/50 rounded-xl flex flex-col items-center justify-center gap-1 text-rose-400 transition-all shadow-md group">
+                <i class="fa-solid fa-hand-holding-dollar text-sm group-hover:scale-110 transition-transform"></i>
+                <span class="text-[11px] font-extrabold tracking-tight">Borçlar</span>
+            </button>
+            <button onclick="switchTab('calculator')" class="py-2.5 px-1 bg-slate-950 hover:bg-amber-950/40 border border-slate-800 hover:border-amber-500/50 rounded-xl flex flex-col items-center justify-center gap-1 text-amber-400 transition-all shadow-md group">
+                <i class="fa-solid fa-calculator text-sm group-hover:scale-110 transition-transform"></i>
+                <span class="text-[11px] font-extrabold tracking-tight">Hesap</span>
+            </button>
+            <button onclick="switchTab('rates')" class="py-2.5 px-1 bg-slate-950 hover:bg-emerald-950/40 border border-slate-800 hover:border-emerald-500/50 rounded-xl flex flex-col items-center justify-center gap-1 text-emerald-400 transition-all shadow-md group">
+                <i class="fa-solid fa-chart-line text-sm group-hover:scale-110 transition-transform"></i>
+                <span class="text-[11px] font-extrabold tracking-tight">Kurlar</span>
+            </button>
+        </nav>
+
+        <!-- 3. BORÇLAR SAYFASI ALT MENÜSÜ -->
+        <nav id="navDebtsContainer" class="hidden w-full grid grid-cols-4 gap-1.5 pt-2 border-t border-slate-800/80 shrink-0">
+            <button onclick="switchTab('main')" class="py-2.5 px-1 bg-slate-950 hover:bg-violet-950/40 border border-slate-800 hover:border-violet-500/50 rounded-xl flex flex-col items-center justify-center gap-1 text-violet-400 transition-all shadow-md group">
+                <i class="fa-solid fa-chart-pie text-sm group-hover:scale-110 transition-transform"></i>
+                <span class="text-[11px] font-extrabold tracking-tight">Özet</span>
+            </button>
+            <button onclick="switchTab('assets')" class="py-2.5 px-1 bg-slate-950 hover:bg-cyan-950/40 border border-slate-800 hover:border-cyan-500/50 rounded-xl flex flex-col items-center justify-center gap-1 text-cyan-400 transition-all shadow-md group">
+                <i class="fa-solid fa-wallet text-sm group-hover:scale-110 transition-transform"></i>
+                <span class="text-[11px] font-extrabold tracking-tight">Varlıklar</span>
+            </button>
+            <button onclick="switchTab('calculator')" class="py-2.5 px-1 bg-slate-950 hover:bg-amber-950/40 border border-slate-800 hover:border-amber-500/50 rounded-xl flex flex-col items-center justify-center gap-1 text-amber-400 transition-all shadow-md group">
+                <i class="fa-solid fa-calculator text-sm group-hover:scale-110 transition-transform"></i>
+                <span class="text-[11px] font-extrabold tracking-tight">Hesap</span>
+            </button>
+            <button onclick="switchTab('rates')" class="py-2.5 px-1 bg-slate-950 hover:bg-emerald-950/40 border border-slate-800 hover:border-emerald-500/50 rounded-xl flex flex-col items-center justify-center gap-1 text-emerald-400 transition-all shadow-md group">
+                <i class="fa-solid fa-chart-line text-sm group-hover:scale-110 transition-transform"></i>
+                <span class="text-[11px] font-extrabold tracking-tight">Kurlar</span>
+            </button>
+        </nav>
+
+        <!-- 4. HESAP SAYFASI ALT MENÜSÜ -->
+        <nav id="navCalculatorContainer" class="hidden w-full grid grid-cols-4 gap-1.5 pt-2 border-t border-slate-800/80 shrink-0">
+            <button onclick="switchTab('main')" class="py-2.5 px-1 bg-slate-950 hover:bg-violet-950/40 border border-slate-800 hover:border-violet-500/50 rounded-xl flex flex-col items-center justify-center gap-1 text-violet-400 transition-all shadow-md group">
+                <i class="fa-solid fa-chart-pie text-sm group-hover:scale-110 transition-transform"></i>
+                <span class="text-[11px] font-extrabold tracking-tight">Özet</span>
+            </button>
+            <button onclick="switchTab('assets')" class="py-2.5 px-1 bg-slate-950 hover:bg-cyan-950/40 border border-slate-800 hover:border-cyan-500/50 rounded-xl flex flex-col items-center justify-center gap-1 text-cyan-400 transition-all shadow-md group">
+                <i class="fa-solid fa-wallet text-sm group-hover:scale-110 transition-transform"></i>
+                <span class="text-[11px] font-extrabold tracking-tight">Varlıklar</span>
+            </button>
+            <button onclick="switchTab('debts')" class="py-2.5 px-1 bg-slate-950 hover:bg-rose-950/40 border border-slate-800 hover:border-rose-500/50 rounded-xl flex flex-col items-center justify-center gap-1 text-rose-400 transition-all shadow-md group">
+                <i class="fa-solid fa-hand-holding-dollar text-sm group-hover:scale-110 transition-transform"></i>
+                <span class="text-[11px] font-extrabold tracking-tight">Borçlar</span>
+            </button>
+            <button onclick="switchTab('rates')" class="py-2.5 px-1 bg-slate-950 hover:bg-emerald-950/40 border border-slate-800 hover:border-emerald-500/50 rounded-xl flex flex-col items-center justify-center gap-1 text-emerald-400 transition-all shadow-md group">
+                <i class="fa-solid fa-chart-line text-sm group-hover:scale-110 transition-transform"></i>
+                <span class="text-[11px] font-extrabold tracking-tight">Kurlar</span>
+            </button>
+        </nav>
+
+        <!-- 5. KURLAR SAYFASI ALT MENÜSÜ -->
+        <nav id="navRatesContainer" class="hidden w-full grid grid-cols-4 gap-1.5 pt-2 border-t border-slate-800/80 shrink-0">
+            <button onclick="switchTab('main')" class="py-2.5 px-1 bg-slate-950 hover:bg-violet-950/40 border border-slate-800 hover:border-violet-500/50 rounded-xl flex flex-col items-center justify-center gap-1 text-violet-400 transition-all shadow-md group">
+                <i class="fa-solid fa-chart-pie text-sm group-hover:scale-110 transition-transform"></i>
+                <span class="text-[11px] font-extrabold tracking-tight">Özet</span>
+            </button>
+            <button onclick="switchTab('assets')" class="py-2.5 px-1 bg-slate-950 hover:bg-cyan-950/40 border border-slate-800 hover:border-cyan-500/50 rounded-xl flex flex-col items-center justify-center gap-1 text-cyan-400 transition-all shadow-md group">
+                <i class="fa-solid fa-wallet text-sm group-hover:scale-110 transition-transform"></i>
+                <span class="text-[11px] font-extrabold tracking-tight">Varlıklar</span>
+            </button>
+            <button onclick="switchTab('debts')" class="py-2.5 px-1 bg-slate-950 hover:bg-rose-950/40 border border-slate-800 hover:border-rose-500/50 rounded-xl flex flex-col items-center justify-center gap-1 text-rose-400 transition-all shadow-md group">
+                <i class="fa-solid fa-hand-holding-dollar text-sm group-hover:scale-110 transition-transform"></i>
+                <span class="text-[11px] font-extrabold tracking-tight">Borçlar</span>
+            </button>
+            <button onclick="switchTab('calculator')" class="py-2.5 px-1 bg-slate-950 hover:bg-amber-950/40 border border-slate-800 hover:border-amber-500/50 rounded-xl flex flex-col items-center justify-center gap-1 text-amber-400 transition-all shadow-md group">
+                <i class="fa-solid fa-calculator text-sm group-hover:scale-110 transition-transform"></i>
+                <span class="text-[11px] font-extrabold tracking-tight">Hesap</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Hidden Input for File Import -->
+    <input type="file" id="importFileInput" accept=".json" class="hidden" onchange="importBackup(event)">
+
+    <!-- Veri Yedekleme Modalı -->
+    <div id="backupModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-700 w-full max-w-xs rounded-3xl p-4 shadow-2xl flex flex-col gap-3">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+                <h3 class="text-xs font-bold text-cyan-400 flex items-center gap-1.5">
+                    <i class="fa-solid fa-database"></i> Veri Saklama ve Yedekleme
+                </h3>
+                <button onclick="closeBackupModal()" aria-label="Kapat" class="text-slate-400 hover:text-white px-2 py-1 text-xs">✕</button>
+            </div>
+            
+            <p class="text-[10px] text-slate-300 leading-relaxed">
+                Tüm verileriniz cihazınızda IndexedDB ve LocalStorage ile güvenle saklanır. Dilediğiniz zaman JSON yedek alabilir veya yükleyebilirsiniz.
+            </p>
+
+            <div class="flex flex-col gap-2 pt-1">
+                <button onclick="exportBackup(); closeBackupModal();" class="w-full py-2.5 bg-slate-950 hover:bg-slate-800 text-emerald-400 border border-emerald-500/40 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-download"></i> Dosyaya Yedekle (JSON)
+                </button>
+                <button onclick="triggerImportFile(); closeBackupModal();" class="w-full py-2.5 bg-slate-950 hover:bg-slate-800 text-cyan-400 border border-cyan-500/40 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-upload"></i> Dosyadan Yükle
+                </button>
+                <button onclick="closeBackupModal(); openAutoBackupModal();" class="w-full py-2.5 bg-slate-950 hover:bg-slate-800 text-amber-400 border border-amber-500/40 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-clock-rotate-left"></i> Otomatik Yedek Gör / Yükle
+                </button>
+                <button onclick="resetAllData()" class="w-full py-2 bg-rose-950/60 hover:bg-rose-900/70 text-rose-300 border border-rose-800/60 font-bold rounded-xl text-[10px] transition-colors mt-2">
+                    Tüm Verileri Sıfırla
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Otomatik Yedekler Modalı -->
+    <div id="autoBackupModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-700 w-full max-w-xs rounded-3xl p-4 shadow-2xl flex flex-col gap-3 max-h-[85vh]">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-800 shrink-0">
+                <h3 class="text-xs font-bold text-amber-400 flex items-center gap-1.5">
+                    <i class="fa-solid fa-clock-rotate-left"></i> Otomatik Yedek Geçmişi
+                </h3>
+                <button onclick="closeAutoBackupModal()" aria-label="Kapat" class="text-slate-400 hover:text-white px-2 py-1 text-xs">✕</button>
+            </div>
+            
+            <p class="text-[10px] text-slate-300 leading-relaxed shrink-0">
+                Her ekleme, çıkarma veya güncellemede kaydedilen otomatik yedekler listelenir. İstediğiniz versiyona geri dönebilirsiniz:
+            </p>
+
+            <div id="autoBackupList" class="space-y-2 overflow-y-auto custom-scrollbar flex-1 pr-1">
+                <!-- Otomatik yedek maddeleri dinamik dolacak -->
+            </div>
+        </div>
+    </div>
+
+    <!-- DETAYLI KULLANIM KILAVUZU MODALI -->
+    <div id="guideModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-700 w-full max-w-xs rounded-3xl p-4 shadow-2xl flex flex-col gap-3 max-h-[85vh]">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-800 shrink-0">
+                <h3 class="text-xs font-bold text-violet-400 flex items-center gap-1.5">
+                    <i class="fa-solid fa-book-open"></i> Kullanım Kılavuzu
+                </h3>
+                <button onclick="closeGuideModal()" aria-label="Kapat" class="text-slate-400 hover:text-white px-2 py-1 text-xs">✕</button>
+            </div>
+            
+            <div class="space-y-3 overflow-y-auto custom-scrollbar text-[10px] text-slate-300 pr-1 flex-1">
+                
+                <!-- Üst Header Butonları -->
+                <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                    <h4 class="font-bold text-amber-400 mb-1 text-xs flex items-center gap-1">
+                        <i class="fa-solid fa-bars"></i> Üst Başlık & Menü İkonları
+                    </h4>
+                    <p class="leading-relaxed text-slate-400">
+                        • <strong class="text-cyan-400">Veri Butonu:</strong> JSON yedek alma, dosyadan yükleme, otomatik yedek geçmişi ve tüm verileri sıfırlama panelini açar.<br>
+                        • <strong class="text-violet-400">Kılavuz Butonu:</strong> Şu an incelediğiniz Kullanım Kılavuzu penceresini açar.
+                    </p>
+                </div>
+
+                <!-- Özet Sayfası & Kartları -->
+                <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                    <h4 class="font-bold text-cyan-400 mb-1 text-xs flex items-center gap-1">
+                        <i class="fa-solid fa-chart-pie"></i> Özet Sayfası & Hesap Kartları
+                    </h4>
+                    <p class="leading-relaxed text-slate-400">
+                        • <strong class="text-amber-300">Bilgi Kutusu:</strong> Hesaplamaların alış değerleri üzerinden bilgi amaçlı olduğunu belirtir.<br>
+                        • <strong class="text-slate-200">Hicri / Miladi Takvim Butonları:</strong> Zekât oranını Hicri (%2.5) veya Miladi (%2.577) takvime göre değiştirir.<br>
+                        • <strong class="text-cyan-400">Zekât Borcu Kartı:</strong> Toplam varlık ve borçlar hesaplandıktan sonra ödenmesi gereken net zekâtı, nisap durumunu (80.18g altın) gösterir.<br>
+                        • <strong class="text-slate-200">Kurları Güncelle Butonu:</strong> Ana sayfadan piyasa verilerini ve zekât hesabını tazeler.
+                    </p>
+                </div>
+
+                <!-- Varlıklar Sayfası -->
+                <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                    <h4 class="font-bold text-cyan-400 mb-1 text-xs flex items-center gap-1">
+                        <i class="fa-solid fa-wallet"></i> Varlıklar Sayfası & İşlemleri
+                    </h4>
+                    <p class="leading-relaxed text-slate-400">
+                        • <strong class="text-cyan-400">"+ Ekle" Butonu:</strong> Listeye yeni bir varlık kalemi ekler.<br>
+                        • <strong class="text-rose-400">Çöp Kutusu (Tümünü Sıfırla) Butonu:</strong> Listedeki tüm varlık kayıtlarını tek tıkla temizler.<br>
+                        • <strong class="text-slate-200">Tür Seçim Menüsü:</strong> Nakit TL, banka mevduatı, döviz (USD, EUR, SAR), altın çeşitleri (24K, 22K vb.) ve gümüş seçmenizi sağlar.<br>
+                        • <strong class="text-slate-200">Miktar & Sil Butonları:</strong> Kalem miktarını girmenizi veya satırdaki çöp kutusu ile tekil silme yapmanızı sağlar.
+                    </p>
+                </div>
+
+                <!-- Borçlar Sayfası -->
+                <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                    <h4 class="font-bold text-rose-400 mb-1 text-xs flex items-center gap-1">
+                        <i class="fa-solid fa-hand-holding-dollar"></i> Borçlar Sayfası & İşlemleri
+                    </h4>
+                    <p class="leading-relaxed text-slate-400">
+                        • <strong class="text-rose-400">"+ Ekle" Butonu:</strong> Varlıklardan düşülecek yeni bir borç kalemi ekler.<br>
+                        • <strong class="text-rose-400">Çöp Kutusu (Tümünü Sıfırla) Butonu:</strong> Tüm borç listesini sıfırlar.<br>
+                        • <strong class="text-slate-200">Borç Türleri:</strong> Kredi kartı borcu, arta taksit, elden borç veya döviz/altın bazlı borçları seçmenize imkân tanır.
+                    </p>
+                </div>
+
+                <!-- Hesap Makinası Sayfası -->
+                <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                    <h4 class="font-bold text-amber-400 mb-1 text-xs flex items-center gap-1">
+                        <i class="fa-solid fa-calculator"></i> Hesap Makinası Sayfası
+                    </h4>
+                    <p class="leading-relaxed text-slate-400">
+                        • <strong class="text-amber-400">"+ Ekle" ve Sıfırla Butonları:</strong> Zekât hesabına dahil edilmeyen harici varlık veya giderlerinizi bağımsız olarak takip etmenizi sağlar.
+                    </p>
+                </div>
+
+                <!-- Kurlar Sayfası -->
+                <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                    <h4 class="font-bold text-amber-400 mb-1 text-xs flex items-center gap-1">
+                        <i class="fa-solid fa-chart-line"></i> Kurlar Sayfası & Fiyat Paneli
+                    </h4>
+                    <p class="leading-relaxed text-slate-400">
+                        • <strong class="text-amber-400">Ons Alış / Satış Inputları:</strong> Dolar bazlı ons altın ve gümüş fiyatlarını manuel düzenlemenizi sağlar.<br>
+                        • <strong class="text-amber-400">Canlı Piyasa Verilerini Çek Butonu:</strong> Tüm döviz ve ons kurlarını internetten günceller.<br>
+                        • <strong class="text-slate-200">Alış & Satış Tablosu:</strong> Tüm varlık birimlerinin piyasa alış/satış fiyatlarını gösterir ve elle özel kur girmenize olanak tanır.
+                    </p>
+                </div>
+
+                <!-- Alt Navigasyon Menüleri -->
+                <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                    <h4 class="font-bold text-violet-400 mb-1 text-xs flex items-center gap-1">
+                        <i class="fa-solid fa-compass"></i> Alt Navigasyon Menüleri
+                    </h4>
+                    <p class="leading-relaxed text-slate-400">
+                        Bulunduğunuz sayfaya göre alt kısımda yer alan 4'lü buton grubu ile <strong class="text-cyan-400">Özet</strong>, <strong class="text-cyan-400">Varlıklar</strong>, <strong class="text-rose-400">Borçlar</strong>, <strong class="text-amber-400">Hesap</strong> ve <strong class="text-emerald-400">Kurlar</strong> sekmeleri arasında anında geçiş yapabilirsiniz.
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Uygulama Mantığı (JavaScript) -->
+    <script>
+        // --- SES VE HAPTIC GERİ BİLDİRİM ---
+        let audioCtx = null;
+        function playClickSound() {
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(450, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.04);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.04);
+            } catch(e) {}
+        }
+
+        function triggerHaptic() {
+            if ("vibrate" in navigator) {
+                try { navigator.vibrate(30); } catch(e){}
+            }
+        }
+
+        // --- HYBRID STORAGE (INDEXEDDB + LOCALSTORAGE) ---
+        let db = null;
+        function initIndexedDB() {
+            return new Promise((resolve) => {
+                try {
+                    const request = indexedDB.open("ZakatStandaloneDB_v1", 1);
+                    request.onerror = () => resolve(null);
+                    request.onsuccess = (e) => { db = e.target.result; resolve(db); };
+                    request.onupgradeneeded = (e) => {
+                        const database = e.target.result;
+                        if (!database.objectStoreNames.contains("storageStore")) {
+                            database.createObjectStore("storageStore");
+                        }
+                    };
+                } catch(e) { resolve(null); }
+            });
+        }
+
+        async function dbSave(key, value) {
+            try {
+                if (!db) await initIndexedDB();
+                if (!db) return;
+                const transaction = db.transaction(["storageStore"], "readwrite");
+                transaction.objectStore("storageStore").put(value, key);
+            } catch(e) {}
+        }
+
+        async function dbGet(key) {
+            try {
+                if (!db) await initIndexedDB();
+                if (!db) return null;
+                return new Promise((resolve) => {
+                    const transaction = db.transaction(["storageStore"], "readonly");
+                    const request = transaction.objectStore("storageStore").get(key);
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => resolve(null);
+                });
+            } catch(e) { return null; }
+        }
+
+        async function secureSaveItem(key, valueString) {
+            try { localStorage.setItem(key, valueString); } catch(e) {}
+            await dbSave(key, valueString);
+        }
+
+        async function secureGetItem(key) {
+            let val = null;
+            try { val = localStorage.getItem(key); } catch(e) {}
+            if (!val) {
+                val = await dbGet(key);
+                if (val) {
+                    try { localStorage.setItem(key, val); } catch(e) {}
+                }
+            } else {
+                await dbSave(key, val);
+            }
+            return val;
+        }
+
+        // --- VERİ MİMARİSİ VE SABİTLER ---
+        const ITEM_KEYS = [
+            { key: 'eur', label: 'Euro (€)', unit: 'EUR', isGold: false },
+            { key: 'usd', label: 'Dolar ($)', unit: 'USD', isGold: false },
+            { key: 'sar', label: 'Riyal (SAR)', unit: 'SAR', isGold: false },
+            { key: 'gram_24k', label: '24 Ayar Altın', unit: 'gr', isGold: true },
+            { key: 'gram_22k', label: '22 Ayar Bilezik', unit: 'gr', isGold: true },
+            { key: 'gram_18k', label: '18 Ayar Altın', unit: 'gr', isGold: true },
+            { key: 'gram_14k', label: '14 Ayar Altın', unit: 'gr', isGold: true },
+            { key: 'gram_8k', label: '8 Ayar Altın', unit: 'gr', isGold: true },
+            { key: 'ata', label: 'Ata Altın', unit: 'adet', isGold: true },
+            { key: 'tam', label: 'Tam Altın', unit: 'adet', isGold: true },
+            { key: 'yarim', label: 'Yarım Altın', unit: 'adet', isGold: true },
+            { key: 'ceyrek', label: 'Çeyrek Altın', unit: 'adet', isGold: true },
+            { key: 'gumus', label: 'Gümüş (Gram)', unit: 'gr', isGold: false }
+        ];
+
+        let rates = {};
+        let onsPrice = { buy: null, sell: null };
+        let onsSilverPrice = { buy: null, sell: null };
+        let selectedCalendar = 'hicri';
+        let userAssets = [];
+        let userDebts = [];
+        let userCalculator = [];
+        let autoBackups = [];
+        let lastUpdateTime = null;
+
+        // --- VARSAYILAN / FALLBACK KURLAR ---
+        function applyDefaultFallbackRates() {
+            if (!rates.usd || rates.usd.buy === null) rates.usd = { buy: 36.50, sell: 36.65 };
+            if (!rates.eur || rates.eur.buy === null) rates.eur = { buy: 38.20, sell: 38.35 };
+            if (!rates.sar || rates.sar.buy === null) rates.sar = { buy: 9.73, sell: 9.78 };
+            if (!rates.tl) rates.tl = { buy: 1.00, sell: 1.00 };
+            if (!rates.banka) rates.banka = { buy: 1.00, sell: 1.00 };
+            if (!rates.fon) rates.fon = { buy: 1.00, sell: 1.00 };
+            if (!rates.vadeli) rates.vadeli = { buy: 1.00, sell: 1.00 };
+            if (!rates.alacak) rates.alacak = { buy: 1.00, sell: 1.00 };
+            if (!rates.kredi_karti) rates.kredi_karti = { buy: 1.00, sell: 1.00 };
+            if (!rates.karta_taksit) rates.karta_taksit = { buy: 1.00, sell: 1.00 };
+            if (!rates.elden_taksit) rates.elden_taksit = { buy: 1.00, sell: 1.00 };
+            if (!rates.gumus || rates.gumus.buy === null) rates.gumus = { buy: 81.18, sell: 82.50 };
+            if (!rates.gram_24k || rates.gram_24k.buy === null) {
+                rates.gram_24k = { buy: 3000.00, sell: 3050.00 };
+            }
+        }
+
+        // --- SAYFA GEÇİŞ VE MENÜ GÖRÜNÜM YÖNETİMİ ---
+        function switchTab(tabName) {
+            playClickSound(); triggerHaptic();
+
+            const pages = ['main', 'assets', 'debts', 'calculator', 'rates'];
+            pages.forEach(p => {
+                const el = document.getElementById(`page${p.charAt(0).toUpperCase() + p.slice(1)}`);
+                const nav = document.getElementById(`nav${p.charAt(0).toUpperCase() + p.slice(1)}Container`);
+                if (el) el.classList.add('hidden');
+                if (nav) nav.classList.add('hidden');
+            });
+
+            const activePage = document.getElementById(`page${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`);
+            const activeNav = document.getElementById(`nav${tabName.charAt(0).toUpperCase() + tabName.slice(1)}Container`);
+
+            if (activePage) activePage.classList.remove('hidden');
+            if (activeNav) activeNav.classList.remove('hidden');
+
+            if (tabName === 'main') recalculateAllZakat();
+            else if (tabName === 'assets' || tabName === 'debts') renderDynamicLists();
+            else if (tabName === 'calculator') renderCalculatorList();
+            else if (tabName === 'rates') { updateOnsUI(); renderRatesTable(); }
+        }
+
+        // --- TAKVİM SEÇİMİ ---
+        function setCalendar(type) {
+            playClickSound(); triggerHaptic();
+            selectedCalendar = type;
+            updateCalendarUI();
+            recalculateAllZakat();
+            saveZakatStorage();
+        }
+
+        function updateCalendarUI() {
+            const btnH = document.getElementById('btnHicri');
+            const btnM = document.getElementById('btnMiladi');
+
+            if (selectedCalendar === 'hicri') {
+                if(btnH) btnH.className = "py-1.5 px-2 rounded-lg text-xs font-black transition-all bg-amber-500 text-slate-950 shadow";
+                if(btnM) btnM.className = "py-1.5 px-2 rounded-lg text-xs font-black transition-all text-slate-400 hover:text-slate-200";
+            } else {
+                if(btnM) btnM.className = "py-1.5 px-2 rounded-lg text-xs font-black transition-all bg-amber-500 text-slate-950 shadow";
+                if(btnH) btnH.className = "py-1.5 px-2 rounded-lg text-xs font-black transition-all text-slate-400 hover:text-slate-200";
+            }
+        }
+
+        // --- KALEM EKLE / ÇIKAR / GÜNCELLE ---
+        function addItem(type) {
+            playClickSound(); triggerHaptic();
+            const newItem = { id: Date.now(), key: 'tl', amount: 0 };
+            if (type === 'asset') userAssets.push(newItem);
+            else if (type === 'debt') userDebts.push(newItem);
+            else if (type === 'calculator') userCalculator.push(newItem);
+
+            renderDynamicLists();
+            pushAutoBackup(`Yeni ${type === 'asset' ? 'Varlık' : (type === 'debt' ? 'Borç' : 'Hesap')} Eklendi`);
+            saveZakatStorage();
+        }
+
+        function removeItem(type, id) {
+            playClickSound(); triggerHaptic();
+            if (type === 'asset') userAssets = userAssets.filter(item => item.id !== id);
+            else if (type === 'debt') userDebts = userDebts.filter(item => item.id !== id);
+            else if (type === 'calculator') userCalculator = userCalculator.filter(item => item.id !== id);
+            
+            renderDynamicLists();
+            pushAutoBackup(`${type === 'asset' ? 'Varlık' : (type === 'debt' ? 'Borç' : 'Hesap')} Silindi`);
+            saveZakatStorage();
+        }
+
+        function clearAllItems(type) {
+            playClickSound(); triggerHaptic();
+            if (!confirm(`Tüm ${type === 'asset' ? 'varlıkları' : (type === 'debt' ? 'borçları' : 'hesapları')} silmek istediğinize emin misiniz?`)) return;
+            
+            if (type === 'asset') userAssets = [];
+            else if (type === 'debt') userDebts = [];
+            else if (type === 'calculator') userCalculator = [];
+
+            renderDynamicLists();
+            pushAutoBackup(`Tüm ${type} listesi temizlendi`);
+            saveZakatStorage();
+        }
+
+        function updateItemKey(type, id, newKey) {
+            const list = type === 'asset' ? userAssets : (type === 'debt' ? userDebts : userCalculator);
+            const item = list.find(i => i.id === id);
+            if (item) {
+                item.key = newKey;
+                renderDynamicLists();
+                pushAutoBackup('Kalem Türü Değiştirildi');
+                saveZakatStorage();
+            }
+        }
+
+        function updateItemAmount(type, id, value) {
+            const list = type === 'asset' ? userAssets : (type === 'debt' ? userDebts : userCalculator);
+            const item = list.find(i => i.id === id);
+            if (item) {
+                let parsedVal = (value !== '' && !isNaN(value)) ? parseFloat(value) : 0;
+                if (parsedVal < 0) parsedVal = 0;
+                item.amount = parsedVal;
+                
+                const totalEl = document.getElementById(`${type}_total_${item.id}`);
+                if (totalEl) {
+                    const isFixed = (item.key === 'tl' || item.key === 'banka' || item.key === 'fon' || item.key === 'vadeli' || item.key === 'alacak' || item.key === 'kredi_karti' || item.key === 'karta_taksit' || item.key === 'elden_taksit');
+                    const basePrice = isFixed ? 1 : 0;
+                    const price = (rates[item.key] && rates[item.key].buy !== null) ? rates[item.key].buy : basePrice;
+                    totalEl.textContent = '₺' + formatMoney(item.amount * price);
+                }
+                updatePageTotals();
+                saveZakatStorageDebounced();
+            }
+        }
+
+        // --- LİSTE VE EKRAN RENDER MANTIKLARI ---
+        function renderDynamicLists() {
+            renderListContainer('asset', userAssets, 'assetList');
+            renderListContainer('debt', userDebts, 'debtList');
+            renderCalculatorList();
+            updatePageTotals();
+        }
+
+        function renderCalculatorList() {
+            renderListContainer('calculator', userCalculator, 'calculatorList');
+        }
+
+        function renderListContainer(type, list, containerId) {
+            const container = document.getElementById(containerId);
+            if(!container) return;
+            container.innerHTML = '';
+
+            if (!list || list.length === 0) {
+                container.innerHTML = `<div class="text-center py-8 text-slate-500 text-xs font-semibold">Henüz eklenmiş bir kayıt bulunmuyor.</div>`;
+                return;
+            }
+
+            let allOptions = [];
+            if (type === 'debt') {
+                allOptions = [
+                    { key: 'tl', label: 'Türk Lirası (₺)', unit: 'TL' },
+                    { key: 'kredi_karti', label: 'Kredi Kartı Borcu', unit: 'TL' },
+                    { key: 'karta_taksit', label: 'Karta Taksit', unit: 'TL' },
+                    { key: 'elden_taksit', label: 'Elden Taksit / Borç', unit: 'TL' },
+                    ...ITEM_KEYS
+                ];
+            } else {
+                allOptions = [
+                    { key: 'tl', label: 'Nakit Türk Lirası (₺)', unit: 'TL' },
+                    { key: 'banka', label: 'Banka Mevduatı', unit: 'TL' },
+                    { key: 'fon', label: 'Yatırım Fonu / Hisse', unit: 'TL' },
+                    { key: 'vadeli', label: 'Vadeli Hesap', unit: 'TL' },
+                    { key: 'alacak', label: 'Tahsil Edilecek Alacak', unit: 'TL' },
+                    ...ITEM_KEYS
+                ];
+            }
+
+            list.forEach(item => {
+                const itemDef = allOptions.find(k => k.key === item.key) || allOptions[0];
+                const isFixed = (item.key === 'tl' || item.key === 'banka' || item.key === 'fon' || item.key === 'vadeli' || item.key === 'alacak' || item.key === 'kredi_karti' || item.key === 'karta_taksit' || item.key === 'elden_taksit');
+                const basePrice = isFixed ? 1 : 0;
+                const currentPrice = (rates[item.key] && rates[item.key].buy !== null) ? rates[item.key].buy : basePrice;
+                const totalVal = (parseFloat(item.amount) || 0) * currentPrice;
+
+                const row = document.createElement('div');
+                row.className = "bg-slate-950 border border-slate-800 rounded-xl p-2.5 space-y-2 shadow-sm";
+                
+                let selectOptionsHtml = allOptions.map(k => `
+                    <option value="${k.key}" ${k.key === item.key ? 'selected' : ''} class="bg-slate-900 text-slate-100">${k.label}</option>
+                `).join('');
+
+                let themeColorClass = type === 'asset' ? 'text-cyan-400' : (type === 'debt' ? 'text-rose-400' : 'text-amber-400');
+
+                row.innerHTML = `
+                    <div class="flex items-center justify-between gap-2">
+                        <select onchange="updateItemKey('${type}', ${item.id}, this.value)" aria-label="Varlık veya Borç Türü" class="bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1 text-xs text-slate-200 font-bold focus:border-cyan-500 focus:outline-none flex-1 truncate">
+                            ${selectOptionsHtml}
+                        </select>
+                        <button onclick="removeItem('${type}', ${item.id})" aria-label="Kalemi Sil" class="p-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-lg transition-colors">
+                            <i class="fa-solid fa-trash-can text-xs"></i>
+                        </button>
+                    </div>
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-1.5 flex-1">
+                            <input type="number" step="any" min="0" value="${item.amount !== undefined ? item.amount : ''}" placeholder="Miktar" aria-label="Miktar" oninput="updateItemAmount('${type}', ${item.id}, this.value)" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-100 focus:border-cyan-500 focus:outline-none digital-font">
+                            <span class="text-xs font-bold text-slate-400 min-w-[32px]">${itemDef.unit}</span>
+                        </div>
+                        <div class="text-right">
+                            <div id="${type}_total_${item.id}" class="text-xs font-black ${themeColorClass} digital-font">₺${formatMoney(totalVal)}</div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        function updatePageTotals() {
+            const totalAssets = calculateListTotal(userAssets);
+            const totalDebts = calculateListTotal(userDebts);
+            const totalCalculator = calculateListTotal(userCalculator);
+
+            if(document.getElementById('assetTotalText')) document.getElementById('assetTotalText').textContent = '₺' + formatMoney(totalAssets);
+            if(document.getElementById('debtTotalText')) document.getElementById('debtTotalText').textContent = '₺' + formatMoney(totalDebts);
+            if(document.getElementById('calculatorTotalText')) document.getElementById('calculatorTotalText').textContent = '₺' + formatMoney(totalCalculator);
+        }
+
+        function calculateListTotal(list) {
+            if (!list || !Array.isArray(list)) return 0;
+            return list.reduce((sum, item) => {
+                const isFixed = (item.key === 'tl' || item.key === 'banka' || item.key === 'fon' || item.key === 'vadeli' || item.key === 'alacak' || item.key === 'kredi_karti' || item.key === 'karta_taksit' || item.key === 'elden_taksit');
+                const price = isFixed ? 1 : ((rates[item.key] && rates[item.key].buy !== null) ? rates[item.key].buy : 0);
+                const amt = Math.max(0, parseFloat(item.amount) || 0);
+                return sum + (amt * price);
+            }, 0);
+        }
+
+        // --- KUR TABLOSU ---
+        function renderRatesTable() {
+            const table = document.getElementById('ratesTable');
+            if(!table) return;
+            table.innerHTML = '';
+
+            ITEM_KEYS.forEach(item => {
+                const r = rates[item.key] || { buy: null, sell: null };
+                const row = document.createElement('div');
+                row.className = "grid grid-cols-12 px-3 py-1.5 items-center hover:bg-slate-900/60 transition-colors";
+                row.innerHTML = `
+                    <div class="col-span-4 font-bold text-slate-200 flex items-center gap-2 truncate text-xs">
+                        <span class="w-2 h-2 rounded-full shrink-0 ${item.isGold ? 'bg-amber-400' : 'bg-cyan-400'}"></span>
+                        <span class="truncate">${item.label}</span>
+                    </div>
+                    <div class="col-span-4 px-1">
+                        <input type="number" step="any" min="0" value="${r.buy !== null ? r.buy : ''}" placeholder="0.00" aria-label="${item.label} Alış Fiyatı" onchange="manualUpdateRate('${item.key}', 'buy', this.value)" class="w-full text-center bg-slate-900 border border-amber-500/40 rounded-lg py-1 text-xs digital-font font-black text-amber-400 focus:outline-none focus:border-amber-400">
+                    </div>
+                    <div class="col-span-4 px-1">
+                        <input type="number" step="any" min="0" value="${r.sell !== null ? r.sell : ''}" placeholder="0.00" aria-label="${item.label} Satış Fiyatı" onchange="manualUpdateRate('${item.key}', 'sell', this.value)" class="w-full text-center bg-slate-900 border border-slate-700/60 rounded-lg py-1 text-xs digital-font font-black text-slate-300 focus:outline-none focus:border-slate-500">
+                    </div>
+                `;
+                table.appendChild(row);
+            });
+        }
+
+        function manualUpdateRate(key, type, val) {
+            let num = (val !== '' && !isNaN(val)) ? parseFloat(val) : null;
+            if (num !== null && num < 0) num = 0;
+            if (!rates[key]) rates[key] = { buy: null, sell: null };
+            rates[key][type] = num;
+            lastUpdateTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            updateTimeDisplay();
+            saveZakatStorage();
+            recalculateAllZakat();
+        }
+
+        function manualUpdateOns(type, val) {
+            let num = (val !== '' && !isNaN(val)) ? parseFloat(val) : null;
+            if (num !== null && num < 0) num = 0;
+            onsPrice[type] = num;
+            saveZakatStorage();
+            if (onsPrice.buy !== null || onsPrice.sell !== null) recalculateGoldFromOns();
+        }
+
+        function manualUpdateOnsSilver(type, val) {
+            let num = (val !== '' && !isNaN(val)) ? parseFloat(val) : null;
+            if (num !== null && num < 0) num = 0;
+            onsSilverPrice[type] = num;
+            saveZakatStorage();
+            if (onsSilverPrice.buy !== null || onsSilverPrice.sell !== null) recalculateSilverFromOns();
+        }
+
+        function updateOnsUI() {
+            const buyInp = document.getElementById('onsBuyInput');
+            const sellInp = document.getElementById('onsSellInput');
+            const silverBuyInp = document.getElementById('onsSilverBuyInput');
+            const silverSellInp = document.getElementById('onsSilverSellInput');
+            if (buyInp) buyInp.value = (onsPrice && onsPrice.buy !== null) ? onsPrice.buy : '';
+            if (sellInp) sellInp.value = (onsPrice && onsPrice.sell !== null) ? onsPrice.sell : '';
+            if (silverBuyInp) silverBuyInp.value = (onsSilverPrice && onsSilverPrice.buy !== null) ? onsSilverPrice.buy : '';
+            if (silverSellInp) silverSellInp.value = (onsSilverPrice && onsSilverPrice.sell !== null) ? onsSilverPrice.sell : '';
+        }
+
+        // --- ONS ALTIN & GÜMÜŞTEN HESAPLAMA ---
+        function recalculateGoldFromOns() {
+            if (!onsPrice || (onsPrice.buy === null && onsPrice.sell === null)) return;
+            let usdRate = (rates.usd && rates.usd.buy !== null) ? rates.usd.buy : 36.5;
+            let usdSellRate = (rates.usd && rates.usd.sell !== null) ? rates.usd.sell : usdRate;
+            
+            let onsB = onsPrice.buy !== null ? onsPrice.buy : (onsPrice.sell !== null ? onsPrice.sell / 1.002 : 0);
+            let onsS = onsPrice.sell !== null ? onsPrice.sell : (onsPrice.buy !== null ? onsPrice.buy * 1.002 : 0);
+
+            let gram24Buy = (onsB * usdRate) / 31.1034768;
+            let gram24Sell = (onsS * usdSellRate) / 31.1034768;
+
+            rates.gram_24k = { buy: parseFloat(gram24Buy.toFixed(2)), sell: parseFloat(gram24Sell.toFixed(2)) };
+            rates.gram_22k = { buy: parseFloat((gram24Buy * 0.914).toFixed(2)), sell: parseFloat((gram24Sell * 0.919).toFixed(2)) };
+            rates.gram_18k = { buy: parseFloat((gram24Buy * 0.745).toFixed(2)), sell: parseFloat((gram24Sell * 0.752).toFixed(2)) };
+            rates.gram_14k = { buy: parseFloat((gram24Buy * 0.580).toFixed(2)), sell: parseFloat((gram24Sell * 0.588).toFixed(2)) };
+            rates.gram_8k  = { buy: parseFloat((gram24Buy * (8 / 24)).toFixed(2)), sell: parseFloat((gram24Sell * (8 / 24) * 1.01).toFixed(2)) };
+            
+            rates.ata = { buy: parseFloat((gram24Buy * 6.54).toFixed(2)), sell: parseFloat((gram24Sell * 6.62).toFixed(2)) };
+            rates.tam = { buy: parseFloat((gram24Buy * 6.45).toFixed(2)), sell: parseFloat((gram24Sell * 6.53).toFixed(2)) };
+            rates.yarim = { buy: parseFloat((gram24Buy * 3.22).toFixed(2)), sell: parseFloat((gram24Sell * 3.26).toFixed(2)) };
+            rates.ceyrek = { buy: parseFloat((gram24Buy * 1.61).toFixed(2)), sell: parseFloat((gram24Sell * 1.63).toFixed(2)) };
+
+            saveZakatStorage();
+            renderRatesTable();
+            recalculateAllZakat();
+        }
+
+        function recalculateSilverFromOns() {
+            if (!onsSilverPrice || (onsSilverPrice.buy === null && onsSilverPrice.sell === null)) return;
+            let usdRate = (rates.usd && rates.usd.buy !== null) ? rates.usd.buy : 36.5;
+            let usdSellRate = (rates.usd && rates.usd.sell !== null) ? rates.usd.sell : usdRate;
+
+            let silverOnsB = onsSilverPrice.buy !== null ? onsSilverPrice.buy : (onsSilverPrice.sell !== null ? onsSilverPrice.sell / 1.002 : 0);
+            let silverOnsS = onsSilverPrice.sell !== null ? onsSilverPrice.sell : (onsSilverPrice.buy !== null ? onsSilverPrice.buy * 1.002 : 0);
+
+            let silverGramBuy = (silverOnsB * usdRate) / 31.1034768;
+            let silverGramSell = (silverOnsS * usdSellRate) / 31.1034768;
+
+            rates.gumus = { buy: parseFloat(silverGramBuy.toFixed(2)), sell: parseFloat(silverGramSell.toFixed(2)) };
+
+            saveZakatStorage();
+            renderRatesTable();
+            recalculateAllZakat();
+        }
+
+        // --- CANLI PİYASA VERİLERİNİ ÇEKME ---
+        async function updateAndRecalculateAll() {
+            playClickSound(); triggerHaptic();
+
+            const iconMain = document.getElementById('btnUpdateIcon');
+            if(iconMain) iconMain.classList.add('fa-spin');
+
+            const fetchWithTimeout = (url, timeout = 4000) => {
+                return Promise.race([
+                    fetch(url),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), timeout))
+                ]);
+            };
+
+            try {
+                const resDoviz = await fetchWithTimeout('https://open.er-api.com/v6/latest/USD');
+                if (resDoviz && resDoviz.ok) {
+                    const dataDoviz = await resDoviz.json();
+                    if (dataDoviz && dataDoviz.rates && dataDoviz.rates.TRY) {
+                        const usdtry = dataDoviz.rates.TRY;
+                        const eurtry = dataDoviz.rates.EUR ? (usdtry / dataDoviz.rates.EUR) : (usdtry * 1.08);
+                        const sartry = usdtry / 3.75;
+
+                        rates.usd = { buy: parseFloat(usdtry.toFixed(2)), sell: parseFloat((usdtry * 1.004).toFixed(2)) };
+                        rates.eur = { buy: parseFloat(eurtry.toFixed(2)), sell: parseFloat((eurtry * 1.004).toFixed(2)) };
+                        rates.sar = { buy: parseFloat(sartry.toFixed(2)), sell: parseFloat((sartry * 1.004).toFixed(2)) };
+                    }
+                }
+            } catch (e) {}
+
+            try {
+                const resOns = await fetchWithTimeout('https://api.gold-api.com/price/XAU');
+                if (resOns && resOns.ok) {
+                    const dataOns = await resOns.json();
+                    if (dataOns && dataOns.price) {
+                        const liveOns = parseFloat(dataOns.price);
+                        onsPrice = { buy: parseFloat(liveOns.toFixed(2)), sell: parseFloat((liveOns * 1.003).toFixed(2)) };
+                        updateOnsUI();
+                        recalculateGoldFromOns();
+                    }
+                }
+            } catch (e) {}
+
+            try {
+                const resSilver = await fetchWithTimeout('https://api.gold-api.com/price/XAG');
+                if (resSilver && resSilver.ok) {
+                    const dataSilver = await resSilver.json();
+                    if (dataSilver && dataSilver.price) {
+                        const liveSilverOns = parseFloat(dataSilver.price);
+                        onsSilverPrice = { buy: parseFloat(liveSilverOns.toFixed(2)), sell: parseFloat((liveSilverOns * 1.003).toFixed(2)) };
+                        updateOnsUI();
+                        recalculateSilverFromOns();
+                    }
+                }
+            } catch (e) {}
+
+            applyDefaultFallbackRates();
+
+            lastUpdateTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            updateTimeDisplay();
+
+            saveZakatStorage();
+            renderRatesTable();
+            renderDynamicLists();
+            recalculateAllZakat();
+
+            if(iconMain) iconMain.classList.remove('fa-spin');
+        }
+
+        // --- HESAPLAMA MATRAHI VE NİSAP MANTIĞI ---
+        function recalculateAllZakat() {
+            const totalAssets = calculateListTotal(userAssets);
+            const totalDebts = calculateListTotal(userDebts);
+            const netVal = Math.max(0, totalAssets - totalDebts);
+
+            const gram24kPrice = (rates['gram_24k'] && rates['gram_24k'].buy !== null) ? rates['gram_24k'].buy : 0;
+            const nisabThreshold = 80.18 * gram24kPrice;
+            const zakatRate = selectedCalendar === 'hicri' ? 0.025 : 0.02577;
+
+            let zakatPayable = 0;
+            const nisabBadge = document.getElementById('nisabStatus');
+
+            if (gram24kPrice === 0) {
+                if(nisabBadge) {
+                    nisabBadge.textContent = "Kurlar Bekleniyor";
+                    nisabBadge.className = "text-[10px] px-2.5 py-0.5 rounded-full border border-amber-500/40 bg-amber-500/10 text-amber-400 font-bold";
+                }
+            } else if (netVal >= nisabThreshold) {
+                zakatPayable = netVal * zakatRate;
+                if(nisabBadge) {
+                    nisabBadge.textContent = "Nisap Miktarı Üzerinde";
+                    nisabBadge.className = "text-[10px] px-2.5 py-0.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 text-emerald-400 font-bold";
+                }
+            } else {
+                zakatPayable = 0;
+                if(nisabBadge) {
+                    nisabBadge.textContent = "Nisap Miktarı Altında";
+                    nisabBadge.className = "text-[10px] px-2.5 py-0.5 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-bold";
+                }
+            }
+
+            if(document.getElementById('displayZakat')) document.getElementById('displayZakat').textContent = '₺' + formatMoney(zakatPayable);
+            if(document.getElementById('displayAssets')) document.getElementById('displayAssets').textContent = '₺' + formatMoney(totalAssets);
+            if(document.getElementById('displayDebts')) document.getElementById('displayDebts').textContent = '-₺' + formatMoney(totalDebts);
+            if(document.getElementById('displayNet')) document.getElementById('displayNet').textContent = '₺' + formatMoney(netVal);
+            if(document.getElementById('displayNisab')) document.getElementById('displayNisab').textContent = '₺' + formatMoney(nisabThreshold);
+        }
+
+        function formatMoney(amount) {
+            if (isNaN(amount) || amount === null || amount === undefined) return '0.00';
+            return Number(amount).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function updateTimeDisplay() {
+            const ratesText = document.getElementById('ratesLastUpdateText');
+            if (lastUpdateTime && ratesText) {
+                ratesText.textContent = `Güncelleme: ${lastUpdateTime}`;
+            }
+        }
+
+        // --- SAKLAMA / DEPOLAMA VE OTOMATİK YEDEKLEME YÖNETİMİ ---
+        let debounceTimer = null;
+        function saveZakatStorageDebounced() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                pushAutoBackup('Veri Miktarları Güncellendi');
+                saveZakatStorage();
+            }, 800);
+        }
+
+        function pushAutoBackup(reason) {
+            const backupItem = {
+                id: Date.now(),
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+                date: new Date().toLocaleDateString('tr-TR'),
+                reason: reason || 'Otomatik Kayıt',
+                assets: JSON.parse(JSON.stringify(userAssets)),
+                debts: JSON.parse(JSON.stringify(userDebts)),
+                calculator: JSON.parse(JSON.stringify(userCalculator)),
+                calendar: selectedCalendar
+            };
+
+            autoBackups.unshift(backupItem);
+            if (autoBackups.length > 15) {
+                autoBackups = autoBackups.slice(0, 15);
+            }
+        }
+
+        async function saveZakatStorage() {
+            try {
+                const payload = {
+                    assets: userAssets,
+                    debts: userDebts,
+                    calculator: userCalculator,
+                    rates: rates,
+                    ons: onsPrice,
+                    onsSilver: onsSilverPrice,
+                    calendar: selectedCalendar,
+                    lastUpdate: lastUpdateTime,
+                    autoBackups: autoBackups
+                };
+                await secureSaveItem('zakat_standalone_data', JSON.stringify(payload));
+            } catch (e) {}
+        }
+
+        async function loadZakatStorage() {
+            try {
+                await initIndexedDB();
+                const savedDataStr = await secureGetItem('zakat_standalone_data');
+                
+                if (savedDataStr) {
+                    const parsed = JSON.parse(savedDataStr);
+                    if (parsed.assets) userAssets = parsed.assets;
+                    if (parsed.debts) userDebts = parsed.debts;
+                    if (parsed.calculator) userCalculator = parsed.calculator;
+                    if (parsed.rates) rates = parsed.rates;
+                    if (parsed.ons) onsPrice = parsed.ons;
+                    if (parsed.onsSilver) onsSilverPrice = parsed.onsSilver;
+                    if (parsed.calendar) selectedCalendar = parsed.calendar;
+                    if (parsed.autoBackups) autoBackups = parsed.autoBackups;
+                    if (parsed.lastUpdate) {
+                        lastUpdateTime = parsed.lastUpdate;
+                        updateTimeDisplay();
+                    }
+                } else {
+                    userAssets = [{ id: 1, key: 'tl', amount: 0 }];
+                    userDebts = [];
+                    userCalculator = [];
+                    applyDefaultFallbackRates();
+                    pushAutoBackup('İlk Açılış');
+                }
+            } catch (e) {
+                userAssets = [{ id: 1, key: 'tl', amount: 0 }];
+                userDebts = [];
+                userCalculator = [];
+                applyDefaultFallbackRates();
+            }
+
+            applyDefaultFallbackRates();
+            updateOnsUI();
+            updateCalendarUI();
+            renderRatesTable();
+            renderDynamicLists();
+            recalculateAllZakat();
+        }
+
+        // --- YEDEKLEME, OTOMATİK YEDEK VE MODAL KONTROLLERİ ---
+        function openBackupModal() {
+            playClickSound(); triggerHaptic();
+            const m = document.getElementById('backupModal');
+            if (m) m.classList.remove('hidden');
+        }
+
+        function closeBackupModal() {
+            playClickSound(); triggerHaptic();
+            const m = document.getElementById('backupModal');
+            if (m) m.classList.add('hidden');
+        }
+
+        function openGuideModal() {
+            playClickSound(); triggerHaptic();
+            const m = document.getElementById('guideModal');
+            if (m) m.classList.remove('hidden');
+        }
+
+        function closeGuideModal() {
+            playClickSound(); triggerHaptic();
+            const m = document.getElementById('guideModal');
+            if (m) m.classList.add('hidden');
+        }
+
+        function openAutoBackupModal() {
+            playClickSound(); triggerHaptic();
+            renderAutoBackupList();
+            const m = document.getElementById('autoBackupModal');
+            if (m) m.classList.remove('hidden');
+        }
+
+        function closeAutoBackupModal() {
+            playClickSound(); triggerHaptic();
+            const m = document.getElementById('autoBackupModal');
+            if (m) m.classList.add('hidden');
+        }
+
+        function renderAutoBackupList() {
+            const listEl = document.getElementById('autoBackupList');
+            if (!listEl) return;
+            listEl.innerHTML = '';
+
+            if (!autoBackups || autoBackups.length === 0) {
+                listEl.innerHTML = `<div class="text-center py-6 text-slate-500 text-xs font-semibold">Henüz otomatik yedek kaydı yok.</div>`;
+                return;
+            }
+
+            autoBackups.forEach((b) => {
+                const assetCount = b.assets ? b.assets.length : 0;
+                const debtCount = b.debts ? b.debts.length : 0;
+                const calcCount = b.calculator ? b.calculator.length : 0;
+
+                const item = document.createElement('div');
+                item.className = "bg-slate-950 border border-slate-800 rounded-xl p-2.5 flex flex-col gap-1.5 shadow-sm";
+                item.innerHTML = `
+                    <div class="flex justify-between items-center border-b border-slate-800/80 pb-1">
+                        <span class="text-[10px] font-black text-amber-400 flex items-center gap-1">
+                            <i class="fa-solid fa-clock text-[9px]"></i> ${b.timestamp} (${b.date})
+                        </span>
+                        <span class="text-[9px] text-slate-400 font-semibold bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800">${b.reason}</span>
+                    </div>
+                    <div class="flex justify-between items-center text-[10px] text-slate-300 pt-0.5">
+                        <span class="text-slate-400">${assetCount} Varlık, ${debtCount} Borç, ${calcCount} Hesap</span>
+                        <button onclick="restoreAutoBackup(${b.id})" class="px-2 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg text-[10px] transition-all flex items-center gap-1 shadow">
+                            <i class="fa-solid fa-rotate-left text-[9px]"></i> Yükle
+                        </button>
+                    </div>
+                `;
+                listEl.appendChild(item);
+            });
+        }
+
+        function restoreAutoBackup(id) {
+            playClickSound(); triggerHaptic();
+            const target = autoBackups.find(b => b.id === id);
+            if (!target) return;
+
+            userAssets = JSON.parse(JSON.stringify(target.assets || []));
+            userDebts = JSON.parse(JSON.stringify(target.debts || []));
+            userCalculator = JSON.parse(JSON.stringify(target.calculator || []));
+            if (target.calendar) selectedCalendar = target.calendar;
+
+            saveZakatStorage();
+            updateCalendarUI();
+            renderDynamicLists();
+            recalculateAllZakat();
+            closeAutoBackupModal();
+        }
+
+        async function exportBackup() {
+            playClickSound(); triggerHaptic();
+            const payload = {
+                assets: userAssets,
+                debts: userDebts,
+                calculator: userCalculator,
+                rates: rates,
+                ons: onsPrice,
+                onsSilver: onsSilverPrice,
+                calendar: selectedCalendar,
+                exportDate: new Date().toISOString()
+            };
+
+            const fileName = `zekat_asistani_yedek_${new Date().toISOString().slice(0, 10)}.json`;
+            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function triggerImportFile() {
+            playClickSound(); triggerHaptic();
+            const input = document.getElementById('importFileInput');
+            if (input) input.click();
+        }
+
+        function importBackup(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if (parsed.assets) userAssets = parsed.assets;
+                    if (parsed.debts) userDebts = parsed.debts;
+                    if (parsed.calculator) userCalculator = parsed.calculator;
+                    if (parsed.rates) rates = parsed.rates;
+                    if (parsed.ons) onsPrice = parsed.ons;
+                    if (parsed.onsSilver) onsSilverPrice = parsed.onsSilver;
+                    if (parsed.calendar) selectedCalendar = parsed.calendar;
+
+                    pushAutoBackup('Dosyadan Yedek Yüklendi');
+                    await saveZakatStorage();
+                    updateOnsUI();
+                    updateCalendarUI();
+                    renderRatesTable();
+                    renderDynamicLists();
+                    recalculateAllZakat();
+                    closeBackupModal();
+                    document.getElementById('importFileInput').value = '';
+                } catch(err) {
+                    alert('Geçersiz yedek dosyası!');
+                    document.getElementById('importFileInput').value = '';
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        async function resetAllData() {
+            playClickSound(); triggerHaptic();
+            if (!confirm('Tüm verilerinizi sıfırlamak istediğinize emin misiniz?')) return;
+
+            userAssets = [{ id: 1, key: 'tl', amount: 0 }];
+            userDebts = [];
+            userCalculator = [];
+            autoBackups = [];
+            rates = {};
+            onsPrice = { buy: null, sell: null };
+            onsSilverPrice = { buy: null, sell: null };
+            selectedCalendar = 'hicri';
+            lastUpdateTime = null;
+
+            applyDefaultFallbackRates();
+            await saveZakatStorage();
+            updateOnsUI();
+            updateCalendarUI();
+            renderRatesTable();
+            renderDynamicLists();
+            recalculateAllZakat();
+            closeBackupModal();
+        }
+
+        // --- İLK AÇILIŞ YÜKLEMESİ ---
+        window.addEventListener('load', async () => {
+            await loadZakatStorage();
+            updateAndRecalculateAll();
+        });
+    </script>
+</body>
+</html>
