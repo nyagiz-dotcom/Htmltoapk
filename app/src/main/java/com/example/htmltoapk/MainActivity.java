@@ -14,7 +14,10 @@ public class MainActivity extends AppCompatActivity {
         WebSettings webSettings = myWebView.getSettings();
         webSettings.setJavaScriptEnabled(true);
         myWebView.setWebViewClient(new WebViewClient());
+        
+        // Yerel assets klasöründeki index.html dosyasını yükler
         myWebView.loadUrl("file:///android_asset/index.html");
+        
         setContentView(myWebView);
     }
 }
