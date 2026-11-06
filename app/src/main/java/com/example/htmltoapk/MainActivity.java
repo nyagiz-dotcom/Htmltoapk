@@ -1,9 +1,12 @@
 package com.example.htmltoapk;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
+import android.view.WindowManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -18,19 +21,17 @@ public class MainActivity extends AppCompatActivity {
         // Kenardan kenara görünümü aktif eder
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
 
+        // Kamera çentiğinin (cutout) olduğu alanı da içeriğin kaplamasını sağlar
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            getWindow().getAttributes().layoutInDisplayCutoutMode =
+                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+        }
+
         WebView myWebView = new WebView(this);
         WebSettings webSettings = myWebView.getSettings();
         webSettings.setJavaScriptEnabled(true);
         myWebView.setWebViewClient(new WebViewClient());
         myWebView.loadUrl("file:///android_asset/index.html");
-
-        // Sistem pencerelerinin WebView içeriğini aşağı itmesini engeller ve tam ekran yapar
-        myWebView.setFitsSystemWindows(false);
-        myWebView.setSystemUiVisibility(
-            View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-        );
 
         setContentView(myWebView);
 
