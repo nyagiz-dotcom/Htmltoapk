@@ -15,7 +15,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // Kenardan kenara (Edge-to-Edge) görünümü etkinleştirir
+        // Kenardan kenara görünümü aktif eder
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
 
         WebView myWebView = new WebView(this);
@@ -24,9 +24,17 @@ public class MainActivity extends AppCompatActivity {
         myWebView.setWebViewClient(new WebViewClient());
         myWebView.loadUrl("file:///android_asset/index.html");
 
+        // Sistem pencerelerinin WebView içeriğini aşağı itmesini engeller ve tam ekran yapar
+        myWebView.setFitsSystemWindows(false);
+        myWebView.setSystemUiVisibility(
+            View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+        );
+
         setContentView(myWebView);
 
-        // Üst durum çubuğunu ve alt gezinme butonlarını gizler
+        // Üst durum çubuğunu ve alt gezinme çubuğunu tamamen gizler
         if (getWindow().getInsetsController() != null) {
             WindowInsetsController controller = getWindow().getInsetsController();
             controller.hide(WindowInsets.Type.systemBars());
