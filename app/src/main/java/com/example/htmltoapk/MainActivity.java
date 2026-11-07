@@ -43,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
         webSettings.setJavaScriptEnabled(true);
         webSettings.setAllowFileAccess(true);
         webSettings.setDomStorageEnabled(true);
+        webSettings.setMediaPlaybackRequiresUserGesture(false); // Kullanıcı etkileşimi olmadan ses çalmaya izin verir
 
         myWebView.setWebViewClient(new WebViewClient());
 
