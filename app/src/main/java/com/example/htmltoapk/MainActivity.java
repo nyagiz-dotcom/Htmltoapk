@@ -9,7 +9,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.view.View;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
 import android.view.WindowManager;
@@ -19,11 +18,8 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.WindowCompat;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -50,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
 
         myWebView.setWebViewClient(new WebViewClient());
 
-        // Dosya seçici (dosya gezgini) desteği
+        // Dosya seçici (dosyadan yükle / dosya gezgini) desteği
         myWebView.setWebChromeClient(new WebChromeClient() {
             @Override
             public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
@@ -71,7 +67,10 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // JavaScript ile Android arasında köprü kuruyoruz
         myWebView.addJavascriptInterface(new WebAppInterface(this), "AndroidBridge");
+
+        // assets klasöründeki mevcut index.html dosyanızı yükler
         myWebView.loadUrl("file:///android_asset/index.html");
         setContentView(myWebView);
 
@@ -99,6 +98,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // JavaScript'ten gelen çağrıları yakalayan köprü sınıfı
     public class WebAppInterface {
         AppCompatActivity mContext;
 
@@ -112,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
                 ContentResolver resolver = mContext.getContentResolver();
                 ContentValues values = new ContentValues();
                 values.put(MediaStore.MediaColumns.DISPLAY_NAME, dosyaAdi);
-                values.put(MediaStore.MediaColumns.MIME_TYPE, "text/plain");
+                values.put(MediaStore.MediaColumns.MIME_TYPE, "application/json");
                 values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
 
                 Uri uri = resolver.insert(MediaStore.Files.getContentUri("external"), values);
