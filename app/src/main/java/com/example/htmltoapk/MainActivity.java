@@ -1,10 +1,14 @@
 package com.example.htmltoapk;
 
 import android.app.Activity;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.view.View;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
@@ -15,15 +19,13 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.WindowCompat;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.OutputStream;
 
 public class MainActivity extends AppCompatActivity {
     private ValueCallback<Uri[]> mUploadMessage;
@@ -48,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
 
         myWebView.setWebViewClient(new WebViewClient());
 
-        // Dosya seçici (dosya gezgini) pencerelerini yöneten WebChromeClient ekliyoruz
+        // Dosya seçici (dosya gezgini) desteği
         myWebView.setWebChromeClient(new WebChromeClient() {
             @Override
             public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
@@ -80,7 +82,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // Dosya gezgininden seçilen dosyanın sonucunu yakalama
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         super.onActivityResult(requestCode, resultCode, intent);
@@ -106,12 +107,23 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @JavascriptInterface
-        public void dosyayaYaz(String dosyaAdi, String veri) {
+        public void indirilenlereKaydet(String dosyaAdi, String veri) {
             try {
-                File dosya = new File(mContext.getFilesDir(), dosyaAdi);
-                FileOutputStream fos = new FileOutputStream(dosya);
-                fos.write(veri.getBytes());
-                fos.close();
+                ContentResolver resolver = mContext.getContentResolver();
+                ContentValues values = new ContentValues();
+                values.put(MediaStore.MediaColumns.DISPLAY_NAME, dosyaAdi);
+                values.put(MediaStore.MediaColumns.MIME_TYPE, "text/plain");
+                values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
+
+                Uri uri = resolver.insert(MediaStore.Files.getContentUri("external"), values);
+                if (uri != null) {
+                    try (OutputStream os = resolver.openOutputStream(uri)) {
+                        if (os != null) {
+                            os.write(veri.getBytes());
+                            os.flush();
+                        }
+                    }
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
