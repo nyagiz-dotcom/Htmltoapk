@@ -222,7 +222,7 @@
                 <div class="pt-2 border-t border-slate-800/80 space-y-2 shrink-0 w-full mt-1">
                     <div class="flex justify-between items-center px-2 py-1 bg-slate-950 rounded-xl border border-slate-800">
                         <span class="text-xs text-slate-400 font-bold">Toplam Borç:</span>
-                        <span id="debtTotalText" class="text-sm font-black text-rose-400 digital-font">₺0.00</span>
+                        <span id="debtTotalText" class="text-sm font-black text-rose-400 digital-font">-₺0.00</span>
                     </div>
                 </div>
             </div>
@@ -1339,13 +1339,26 @@
             };
 
             const fileName = `zekat_asistani_yedek_${new Date().toISOString().slice(0, 10)}.json`;
-            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = fileName;
-            a.click();
-            URL.revokeObjectURL(url);
+            const dataStr = JSON.stringify(payload, null, 2);
+
+            // Android uygulamasında mıyız kontrol ediyoruz ve Downloads klasörüne kaydediyoruz
+            if (window.AndroidBridge && typeof window.AndroidBridge.indirilenlereKaydet === "function") {
+                try {
+                    window.AndroidBridge.indirilenlereKaydet(fileName, dataStr);
+                    alert(fileName + " başarıyla İndirilenler klasörüne kaydedildi!");
+                } catch (e) {
+                    alert("Yedek kaydedilirken bir hata oluştu: " + e.message);
+                }
+            } else {
+                // Tarayıcı ortamında test ediliyorsa normal indirme yapılır
+                const blob = new Blob([dataStr], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                a.click();
+                URL.revokeObjectURL(url);
+            }
         }
 
         function triggerImportFile() {
